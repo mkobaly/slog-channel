@@ -60,8 +60,11 @@ func (h *ChannelHandler) Enabled(_ context.Context, level slog.Level) bool {
 func (h *ChannelHandler) Handle(ctx context.Context, record slog.Record) error {
 	fromContext := slogcommon.ContextExtractor(ctx, h.option.AttrFromContext)
 	output := h.option.Converter(h.option.AddSource, h.option.ReplaceAttr, append(h.attrs, fromContext...), h.groups, &record)
-	h.option.Channel <- output
-
+	select {
+	case h.option.Channel <- output:
+	default:
+	   //do nothing	
+	}
 	return nil
 }
 
